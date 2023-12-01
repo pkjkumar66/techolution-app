@@ -1,6 +1,7 @@
 package com.example.techolution.service;
 
 import com.example.techolution.entity.User;
+import com.example.techolution.exception.ResourceNotFoundException;
 import com.example.techolution.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -25,14 +26,8 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public User getUserById(Long userId) {
-        Optional<User> optionalUser = userRepository.findById(userId);
-
-        User user = null;
-        if (optionalUser.isPresent()) {
-            user = optionalUser.get();
-        }
-
-        return user;
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
     }
 
     @Override
@@ -42,19 +37,23 @@ public class UserServiceImpl implements UserService {
 
     public User updateUser(Long userId, User user) {
         Optional<User> optionalUser = userRepository.findById(userId);
-        User updatedUser = null;
         if (optionalUser.isPresent()) {
             User existingUser = optionalUser.get();
             existingUser.setUserName(user.getUserName());
             existingUser.setPasswordHash(user.getPasswordHash());
-            updatedUser = userRepository.save(existingUser);
+            return userRepository.save(existingUser);
+        } else {
+            throw new ResourceNotFoundException("User not found with ID: " + userId);
         }
-        return updatedUser;
     }
 
     @Override
     public void deleteUserById(Long userId) {
-        userRepository.deleteById(userId);
+        if (userRepository.existsById(userId)) {
+            userRepository.deleteById(userId);
+        } else {
+            throw new ResourceNotFoundException("User not found with ID: " + userId);
+        }
     }
 }
 
