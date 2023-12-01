@@ -23,6 +23,14 @@ public class User {
     @Column(name = "password")
     private String passwordHash;
 
+    public User(String userName, String passwordHash) {
+        this.userName = userName;
+        this.passwordHash = passwordHash;
+    }
+
+    public User() {
+    }
+
     public String getUserName() {
         return userName;
     }
