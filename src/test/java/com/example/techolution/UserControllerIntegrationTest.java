@@ -103,7 +103,7 @@ public class UserControllerIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(newUser)));
 
-        resultActions.andExpect(status().isOk())
+        resultActions.andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.id").exists());
     }
@@ -120,7 +120,7 @@ public class UserControllerIntegrationTest {
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(objectMapper.writeValueAsString(updatedUser)));
 
-        resultActions.andExpect(status().isOk())
+        resultActions.andExpect(status().isCreated())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(MockMvcResultMatchers.jsonPath("$.userName").value("updatedUser"));
     }
@@ -182,6 +182,6 @@ public class UserControllerIntegrationTest {
         Long userId = 1L;
 
         mockMvc.perform(delete("/api/users/{userId}", userId))
-                .andExpect(status().isOk());
+                .andExpect(status().isNoContent());
     }
 }

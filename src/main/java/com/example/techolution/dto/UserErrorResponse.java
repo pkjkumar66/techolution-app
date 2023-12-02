@@ -1,20 +1,15 @@
 package com.example.techolution.dto;
 
-import lombok.Builder;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
-@Builder
 @Data
+@SuperBuilder
+@AllArgsConstructor
 @NoArgsConstructor
 public class UserErrorResponse {
-    private String message;
-
-    public UserErrorResponse(String message) {
-        this.message = message;
-    }
-
-    public String getMessage() {
-        return message;
-    }
+    private String errorMessage;
+    private String errorCode;
 }
