@@ -118,7 +118,7 @@ curl --location 'http://localhost:8080/api/users' \
 --header 'Cookie: JSESSIONID=0F22F030927774A7A84EA74753482213'
 ```
 
-### Get All the user by userId
+### Get User by userId
 
 ```bash
 curl --location 'http://localhost:8080/api/users/1' \
