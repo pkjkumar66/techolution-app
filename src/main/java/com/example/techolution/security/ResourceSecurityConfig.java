@@ -47,7 +47,7 @@ public class ResourceSecurityConfig {
                         .requestMatchers(HttpMethod.GET, "/api/users").hasRole("EMPLOYEE")
                         .requestMatchers(HttpMethod.GET, "/api/users/**").hasRole("EMPLOYEE")
                         .requestMatchers(HttpMethod.POST, "/api/users").hasRole("MANAGER")
-                        .requestMatchers(HttpMethod.PUT, "/api/users").hasRole("MANAGER")
+                        .requestMatchers(HttpMethod.PUT, "/api/users/**").hasRole("MANAGER")
                         .requestMatchers(HttpMethod.DELETE, "/api/users/**").hasRole("ADMIN")
         );
 

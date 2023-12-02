@@ -1,6 +1,5 @@
-package com.example.techolution.controller;
+package com.example.techolution.exception;
 
-import com.example.techolution.exception.ResourceNotFoundException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
