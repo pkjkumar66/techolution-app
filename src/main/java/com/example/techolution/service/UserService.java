@@ -1,20 +1,21 @@
 package com.example.techolution.service;
 
 
+import com.example.techolution.dto.UserResponse;
 import com.example.techolution.entity.User;
 
 import java.util.List;
 
 public interface UserService {
 
-    List<User> getAllUsers();
+    List<UserResponse> getAllUsers();
 
-    User getUserById(Long userId);
+    UserResponse getUserById(Long userId);
 
-    User addUser(User user);
+    UserResponse addUser(User user);
 
-    User updateUser(Long userId, User user);
+    UserResponse updateUser(Long userId, User user);
 
-    void deleteUserById(Long userId);
+    UserResponse deleteUserById(Long userId);
 
 }
