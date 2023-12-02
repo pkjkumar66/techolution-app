@@ -1,5 +1,6 @@
 package com.example.techolution.service;
 
+import com.example.techolution.dto.UserDto;
 import com.example.techolution.dto.UserErrorResponse;
 import com.example.techolution.dto.UserResponse;
 import com.example.techolution.entity.User;
@@ -9,8 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.util.Assert;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
@@ -58,15 +61,20 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserResponse addUser(User user) {
+    public UserResponse addUser(UserDto userDto) {
         UserResponse response = UserResponse.builder().build();
         try {
             checkAuthorizationForRole("MANAGER", "ADMIN");
+            Assert.notNull(userDto, "userDto can't be null");
+            Assert.notNull(userDto.getUserName(), "userName can't be null");
+            Assert.notNull(userDto.getPassword(), "password can't be null");
+
+            User user = new User(userDto.getUserName(), userDto.getPassword());
             User savedUser = userRepository.save(user);
             response.setId(savedUser.getId());
             response.setUserName(savedUser.getUserName());
             response.setPassword(savedUser.getPassword());
-        } catch (AccessDeniedException e) {
+        } catch (Exception e) {
             UserErrorResponse error = UserErrorResponse.builder()
                     .errorMessage(e.getMessage())
                     .build();
@@ -76,16 +84,25 @@ public class UserServiceImpl implements UserService {
 
     }
 
-    public UserResponse updateUser(Long userId, User user) {
+    public UserResponse updateUser(Long userId, UserDto userDto) {
         UserResponse response = UserResponse.builder().build();
         try {
             checkAuthorizationForRole("MANAGER", "ADMIN");
             Optional<User> optionalUser = userRepository.findById(userId);
             if (optionalUser.isPresent()) {
                 User existingUser = optionalUser.get();
-                response.setId(existingUser.getId());
-                response.setUserName(existingUser.getUserName());
-                response.setPassword(existingUser.getPassword());
+                if (Objects.nonNull(userDto) && userDto.getUserName().length() > 0) {
+                    existingUser.setUserName(userDto.getUserName());
+                }
+
+                if (Objects.nonNull(userDto) && userDto.getPassword().length() > 0) {
+                    existingUser.setPassword(userDto.getPassword());
+                }
+
+                User savedUser = userRepository.save(existingUser);
+                response.setId(savedUser.getId());
+                response.setUserName(savedUser.getUserName());
+                response.setPassword(savedUser.getPassword());
             } else {
                 UserErrorResponse error = UserErrorResponse.builder()
                         .errorCode("404")

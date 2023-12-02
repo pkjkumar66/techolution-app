@@ -1,17 +1,15 @@
 package com.example.techolution.dto;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.experimental.SuperBuilder;
 
 @Data
-@Builder
+@SuperBuilder
 @NoArgsConstructor
 @AllArgsConstructor
-public class UserResponse {
-    private Long id;
+public class UserDto {
     private String userName;
     private String password;
-    private UserErrorResponse error;
 }
