@@ -1,8 +1,9 @@
 package com.example.techolution.service;
 
+import com.example.techolution.dto.UserErrorResponse;
+import com.example.techolution.dto.UserResponse;
 import com.example.techolution.entity.User;
 import com.example.techolution.exception.AccessDeniedException;
-import com.example.techolution.exception.ResourceNotFoundException;
 import com.example.techolution.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.Authentication;
@@ -11,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -23,43 +25,83 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public List<User> getAllUsers() {
-        return userRepository.findAll();
+    public List<UserResponse> getAllUsers() {
+        List<User> users = userRepository.findAll();
+        List<UserResponse> response = users.stream()
+                .map(user -> UserResponse.builder()
+                        .id(user.getId())
+                        .userName(user.getUserName())
+                        .password(user.getPassword())
+                        .build())
+                .collect(Collectors.toList());
+        return response;
     }
 
     @Override
-    public User getUserById(Long userId) {
-        return userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException("User not found with ID: " + userId));
+    public UserResponse getUserById(Long userId) {
+        Optional<User> user = userRepository.findById(userId);
+        UserResponse response = UserResponse.builder().build();
+        if (user.isPresent()) {
+            User existingUser = user.get();
+            response.setId(existingUser.getId());
+            response.setUserName(existingUser.getUserName());
+            response.setPassword(existingUser.getPassword());
+        } else {
+            UserErrorResponse error = UserErrorResponse.builder()
+                    .errorCode("404")
+                    .errorMessage("User not found with ID: " + userId)
+                    .build();
+            response.setError(error);
+        }
+        return response;
+
     }
 
     @Override
-    public User addUser(User user) {
+    public UserResponse addUser(User user) {
         checkAuthorizationForRole("MANAGER", "ADMIN");
-        return userRepository.save(user);
+        User savedUser = userRepository.save(user);
+        return UserResponse.builder()
+                .id(savedUser.getId())
+                .userName(savedUser.getUserName())
+                .password(savedUser.getPassword())
+                .build();
     }
 
-    public User updateUser(Long userId, User user) {
+    public UserResponse updateUser(Long userId, User user) {
         checkAuthorizationForRole("MANAGER", "ADMIN");
         Optional<User> optionalUser = userRepository.findById(userId);
+        UserResponse response = UserResponse.builder().build();
         if (optionalUser.isPresent()) {
             User existingUser = optionalUser.get();
-            existingUser.setUserName(user.getUserName());
-            existingUser.setPassword(user.getPassword());
-            return userRepository.save(existingUser);
+            response.setId(existingUser.getId());
+            response.setUserName(existingUser.getUserName());
+            response.setPassword(existingUser.getPassword());
         } else {
-            throw new ResourceNotFoundException("User not found with ID: " + userId);
+            UserErrorResponse error = UserErrorResponse.builder()
+                    .errorCode("404")
+                    .errorMessage("User not found with ID: " + userId)
+                    .build();
+            response.setError(error);
         }
+        return response;
     }
 
     @Override
-    public void deleteUserById(Long userId) {
+    public UserResponse deleteUserById(Long userId) {
         checkAuthorizationForRole("ADMIN");
-        if (userRepository.existsById(userId)) {
+        Optional<User> user = userRepository.findById(userId);
+        UserResponse response = UserResponse.builder().build();
+        if (user.isPresent()) {
             userRepository.deleteById(userId);
         } else {
-            throw new ResourceNotFoundException("User not found with ID: " + userId);
+            UserErrorResponse error = UserErrorResponse.builder()
+                    .errorCode("404")
+                    .errorMessage("User not found with ID: " + userId)
+                    .build();
+            response.setError(error);
         }
+        return response;
     }
 
     private void checkAuthorizationForRole(String... allowedRoles) {

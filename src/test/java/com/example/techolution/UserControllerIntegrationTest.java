@@ -1,5 +1,6 @@
 package com.example.techolution;
 
+import com.example.techolution.dto.UserResponse;
 import com.example.techolution.entity.User;
 import com.example.techolution.exception.ResourceNotFoundException;
 import com.example.techolution.service.UserService;
@@ -130,7 +131,7 @@ public class UserControllerIntegrationTest {
     public void testGetUserByIdAsEmployee() throws Exception {
         // Arrange
         Long userId = 1L;
-        User mockUser = new User();
+        UserResponse mockUser = UserResponse.builder().build();
         mockUser.setId(userId);
         mockUser.setUserName("testUser");
 
