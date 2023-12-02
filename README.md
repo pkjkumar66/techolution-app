@@ -28,7 +28,7 @@ and authorization mechanisms using Spring Security and interact with a database 
 1. Clone the repository: `git clone https://github.com/pkjkumar66/techolution-app.git`
 2. Navigate to the project directory: `cd techolution-app`
 3. Build the project: `mvn clean install`
-4. Run the application: `spring-boot:run`
+4. Run the application: `mvn spring-boot:run`
 
 or
 
