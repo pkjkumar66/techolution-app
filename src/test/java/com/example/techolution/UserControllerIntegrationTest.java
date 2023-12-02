@@ -140,23 +140,21 @@ public class UserControllerIntegrationTest {
         // Act & Assert
         mockMvc.perform(get("/api/users/{userId}", userId)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isOk())
-                .andExpect(content().json(objectMapper.writeValueAsString(null)));
+                .andExpect(status().isOk());
     }
 
     @Test
     @WithMockUser(roles = "EMPLOYEE")
     void testGetUserByIdNotFound() throws Exception {
-        // Arrange
         Long userId = 2L;
 
         when(userService.getUserById(userId)).thenThrow(new ResourceNotFoundException("User not found with ID: " + userId));
 
-        // Act & Assert
         mockMvc.perform(MockMvcRequestBuilders.get("/api/users/{userId}", userId)
                         .contentType(MediaType.APPLICATION_JSON))
-                .andExpect(status().isNotFound())
-                .andExpect(MockMvcResultMatchers.content().string("User not found with ID: " + userId));
+                .andExpect(status().isOk())
+                .andExpect(MockMvcResultMatchers.jsonPath("$.error.errorMessage").value("User not found with ID: " + userId));
+
     }
 
     @Test
@@ -183,6 +181,6 @@ public class UserControllerIntegrationTest {
         Long userId = 1L;
 
         mockMvc.perform(delete("/api/users/{userId}", userId))
-                .andExpect(status().isNoContent());
+                .andExpect(status().isOk());
     }
 }

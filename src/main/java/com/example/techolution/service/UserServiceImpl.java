@@ -59,28 +59,43 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse addUser(User user) {
-        checkAuthorizationForRole("MANAGER", "ADMIN");
-        User savedUser = userRepository.save(user);
-        return UserResponse.builder()
-                .id(savedUser.getId())
-                .userName(savedUser.getUserName())
-                .password(savedUser.getPassword())
-                .build();
+        UserResponse response = UserResponse.builder().build();
+        try {
+            checkAuthorizationForRole("MANAGER", "ADMIN");
+            User savedUser = userRepository.save(user);
+            response.setId(savedUser.getId());
+            response.setUserName(savedUser.getUserName());
+            response.setPassword(savedUser.getPassword());
+        } catch (AccessDeniedException e) {
+            UserErrorResponse error = UserErrorResponse.builder()
+                    .errorMessage(e.getMessage())
+                    .build();
+            response.setError(error);
+        }
+        return response;
+
     }
 
     public UserResponse updateUser(Long userId, User user) {
-        checkAuthorizationForRole("MANAGER", "ADMIN");
-        Optional<User> optionalUser = userRepository.findById(userId);
         UserResponse response = UserResponse.builder().build();
-        if (optionalUser.isPresent()) {
-            User existingUser = optionalUser.get();
-            response.setId(existingUser.getId());
-            response.setUserName(existingUser.getUserName());
-            response.setPassword(existingUser.getPassword());
-        } else {
+        try {
+            checkAuthorizationForRole("MANAGER", "ADMIN");
+            Optional<User> optionalUser = userRepository.findById(userId);
+            if (optionalUser.isPresent()) {
+                User existingUser = optionalUser.get();
+                response.setId(existingUser.getId());
+                response.setUserName(existingUser.getUserName());
+                response.setPassword(existingUser.getPassword());
+            } else {
+                UserErrorResponse error = UserErrorResponse.builder()
+                        .errorCode("404")
+                        .errorMessage("User not found with ID: " + userId)
+                        .build();
+                response.setError(error);
+            }
+        } catch (AccessDeniedException e) {
             UserErrorResponse error = UserErrorResponse.builder()
-                    .errorCode("404")
-                    .errorMessage("User not found with ID: " + userId)
+                    .errorMessage(e.getMessage())
                     .build();
             response.setError(error);
         }
@@ -89,18 +104,26 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserResponse deleteUserById(Long userId) {
-        checkAuthorizationForRole("ADMIN");
-        Optional<User> user = userRepository.findById(userId);
         UserResponse response = UserResponse.builder().build();
-        if (user.isPresent()) {
-            userRepository.deleteById(userId);
-        } else {
+        try {
+            checkAuthorizationForRole("ADMIN");
+            Optional<User> user = userRepository.findById(userId);
+            if (user.isPresent()) {
+                userRepository.deleteById(userId);
+            } else {
+                UserErrorResponse error = UserErrorResponse.builder()
+                        .errorCode("404")
+                        .errorMessage("User not found with ID: " + userId)
+                        .build();
+                response.setError(error);
+            }
+        } catch (AccessDeniedException e) {
             UserErrorResponse error = UserErrorResponse.builder()
-                    .errorCode("404")
-                    .errorMessage("User not found with ID: " + userId)
+                    .errorMessage(e.getMessage())
                     .build();
             response.setError(error);
         }
+
         return response;
     }
 
