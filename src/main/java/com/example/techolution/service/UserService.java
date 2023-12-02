@@ -1,6 +1,7 @@
 package com.example.techolution.service;
 
 
+import com.example.techolution.dto.UserDto;
 import com.example.techolution.dto.UserResponse;
 import com.example.techolution.entity.User;
 
@@ -12,9 +13,9 @@ public interface UserService {
 
     UserResponse getUserById(Long userId);
 
-    UserResponse addUser(User user);
+    UserResponse addUser(UserDto user);
 
-    UserResponse updateUser(Long userId, User user);
+    UserResponse updateUser(Long userId, UserDto user);
 
     UserResponse deleteUserById(Long userId);
 

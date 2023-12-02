@@ -1,7 +1,7 @@
 package com.example.techolution.controller;
 
+import com.example.techolution.dto.UserDto;
 import com.example.techolution.dto.UserResponse;
-import com.example.techolution.entity.User;
 import com.example.techolution.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -42,13 +42,13 @@ public class UserController {
 
     // Create a new user
     @PostMapping
-    public ResponseEntity<UserResponse> createUser(@RequestBody User user) {
+    public ResponseEntity<UserResponse> createUser(@RequestBody UserDto user) {
         return ResponseEntity.status(HttpStatus.CREATED).body(userService.addUser(user));
     }
 
     // Update an existing user
     @PutMapping("/{userId}")
-    public ResponseEntity<UserResponse> updateUser(@PathVariable Long userId, @RequestBody User user) {
+    public ResponseEntity<UserResponse> updateUser(@PathVariable Long userId, @RequestBody UserDto user) {
         return ResponseEntity.ok(userService.updateUser(userId, user));
     }
 
