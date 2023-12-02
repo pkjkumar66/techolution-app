@@ -21,14 +21,22 @@ public class User {
     private String userName;
 
     @Column(name = "password")
-    private String passwordHash;
+    private String password;
 
-    public User(String userName, String passwordHash) {
+    public User(String userName, String password) {
         this.userName = userName;
-        this.passwordHash = passwordHash;
+        this.password = password;
     }
 
     public User() {
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    public Long getId() {
+        return id;
     }
 
     public String getUserName() {
@@ -39,11 +47,11 @@ public class User {
         this.userName = userName;
     }
 
-    public String getPasswordHash() {
-        return passwordHash;
+    public String getPassword() {
+        return password;
     }
 
-    public void setPasswordHash(String passwordHash) {
-        this.passwordHash = passwordHash;
+    public void setPassword(String password) {
+        this.password = password;
     }
 }

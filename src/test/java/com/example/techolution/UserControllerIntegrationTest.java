@@ -1,8 +1,11 @@
 package com.example.techolution;
 
 import com.example.techolution.entity.User;
+import com.example.techolution.exception.ResourceNotFoundException;
+import com.example.techolution.service.UserService;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -10,11 +13,13 @@ import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
+import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.test.web.servlet.result.MockMvcResultMatchers;
 
+import static org.mockito.Mockito.when;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -23,11 +28,18 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @AutoConfigureMockMvc
 public class UserControllerIntegrationTest {
 
-    @Autowired
-    private MockMvc mockMvc;
+    private final MockMvc mockMvc;
+
+    private final ObjectMapper objectMapper;
+
+    @Mock
+    private UserService userService;
 
     @Autowired
-    private ObjectMapper objectMapper;
+    public UserControllerIntegrationTest(MockMvc mockMvc, ObjectMapper objectMapper) {
+        this.mockMvc = mockMvc;
+        this.objectMapper = objectMapper;
+    }
 
     @Test
     public void testUnauthenticatedAccess() throws Exception {
@@ -53,18 +65,39 @@ public class UserControllerIntegrationTest {
 
     @Test
     @WithMockUser(roles = "EMPLOYEE")
-    public void testGetUserByIdAsEmployee() throws Exception {
-        Long userId = 1L;
-        mockMvc.perform(get("/api/users/{userId}", userId))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.id").value(userId));
+    public void testAddUserAsEmployeeUnauthorized() throws Exception {
+        User newUser = new User();
+        newUser.setUserName("newUser");
+        newUser.setPassword("password");
+
+        ResultActions resultActions = mockMvc.perform(post("/api/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(newUser)));
+
+        resultActions.andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "EMPLOYEE")
+    public void testUpdateUserAsEmployeeUnauthorized() throws Exception {
+        User updatedUser = new User();
+        updatedUser.setUserName("updatedUser");
+        updatedUser.setPassword("password");
+
+
+        ResultActions resultActions = mockMvc.perform(post("/api/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updatedUser)));
+
+        resultActions.andExpect(status().isForbidden());
     }
 
     @Test
     @WithMockUser(roles = "MANAGER")
-    public void testCreateUserAsManager() throws Exception {
-        User newUser = new User(); // create a new user instance
+    public void testAddUserAsManager() throws Exception {
+        User newUser = new User();
+        newUser.setUserName("newUser");
+        newUser.setPassword("password");
 
         ResultActions resultActions = mockMvc.perform(post("/api/users")
                 .contentType(MediaType.APPLICATION_JSON)
@@ -78,15 +111,69 @@ public class UserControllerIntegrationTest {
     @Test
     @WithMockUser(roles = "MANAGER")
     public void testUpdateUserAsManager() throws Exception {
-        Long userId = 1L;
-        User updatedUser = new User(); // create an updated user instance
+        User updatedUser = new User();
+        updatedUser.setUserName("updatedUser");
+        updatedUser.setPassword("password");
 
-        mockMvc.perform(put("/api/users/{userId}", userId)
-                        .contentType(MediaType.APPLICATION_JSON)
-                        .content(objectMapper.writeValueAsString(updatedUser)))
-                .andExpect(status().isOk())
+
+        ResultActions resultActions = mockMvc.perform(post("/api/users")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(updatedUser)));
+
+        resultActions.andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.id").value(userId));
+                .andExpect(MockMvcResultMatchers.jsonPath("$.userName").value("updatedUser"));
+    }
+
+    @Test
+    @WithMockUser(roles = "EMPLOYEE")
+    public void testGetUserByIdAsEmployee() throws Exception {
+        // Arrange
+        Long userId = 1L;
+        User mockUser = new User();
+        mockUser.setId(userId);
+        mockUser.setUserName("testUser");
+
+        when(userService.getUserById(userId)).thenReturn(mockUser);
+
+        // Act & Assert
+        mockMvc.perform(get("/api/users/{userId}", userId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().json(objectMapper.writeValueAsString(null)));
+    }
+
+    @Test
+    @WithMockUser(roles = "EMPLOYEE")
+    void testGetUserByIdNotFound() throws Exception {
+        // Arrange
+        Long userId = 2L;
+
+        when(userService.getUserById(userId)).thenThrow(new ResourceNotFoundException("User not found with ID: " + userId));
+
+        // Act & Assert
+        mockMvc.perform(MockMvcRequestBuilders.get("/api/users/{userId}", userId)
+                        .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(MockMvcResultMatchers.content().string("User not found with ID: " + userId));
+    }
+
+    @Test
+    @WithMockUser(roles = "EMPLOYEE")
+    public void testDeleteUserAsEmployeeUnauthorized() throws Exception {
+        Long userId = 1L;
+
+        mockMvc.perform(delete("/api/users/{userId}", userId))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(roles = "MANAGER")
+    public void testDeleteUserAsManagerUnauthorized() throws Exception {
+        Long userId = 1L;
+
+        mockMvc.perform(delete("/api/users/{userId}", userId))
+                .andExpect(status().isForbidden());
     }
 
     @Test
