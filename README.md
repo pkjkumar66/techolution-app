@@ -75,9 +75,7 @@ src
 Explore and test the APIs using the provided Postman collection.
 [Postman Collection](https://red-water-686645.postman.co/workspace/My-Workspace~bfb5c795-ecc4-4e23-8ad9-7c7fe4b847b4/collection/25669291-214b1db6-a12c-49ec-bbbe-7f43f2ca1cee?action=share&creator=25669291)
 
-### Authentication and Authorization
-
-#### User Roles
+### User Roles: Authentication and Authorization
 The application defines three user roles: EMPLOYEE, MANAGER, and ADMIN. Each role has specific permissions to access different API endpoints.
 
 - EMPLOYEE: Read-only access to user-related endpoints.
